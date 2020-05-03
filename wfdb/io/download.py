@@ -4,60 +4,60 @@ import re
 import os
 import posixpath
 import requests
+import pdb
+
+from . import record
 
 
-# The physiobank index url
-PB_INDEX_URL = 'http://physionet.org/physiobank/database/'
+# The Physionet index url
+# PN_INDEX_URL = 'https://physionet.org/files/'
+PN_INDEX_URL = 'http://physionet.org/physiobank/database/'
+PN_CONTENT_URL = 'https://physionet.org/content/'
 
 class Config(object):
     pass
 
-# The configuration database index url. Uses physiobank index by default.
+# The configuration database index url. Uses Physionet index by default.
 config = Config()
-config.db_index_url = PB_INDEX_URL
+config.db_index_url = PN_INDEX_URL
 
 
-def set_db_index_url(db_index_url=PB_INDEX_URL):
+def set_db_index_url(db_index_url=PN_INDEX_URL):
     """
     Set the database index url to a custom value, to stream remote
     files from another location.
-
     Parameters
     ----------
     db_index_url : str, optional
         The desired new database index url. Leave as default to reset
-        to the physiobank index url.
-
+        to the Physionet index url.
     """
     config.db_index_url = db_index_url
 
 
-def _remote_file_size(url=None, file_name=None, pb_dir=None):
+def _remote_file_size(url=None, file_name=None, pn_dir=None):
     """
     Get the remote file size in bytes
-
     Parameters
     ----------
     url : str, optional
         The full url of the file. Use this option to explicitly
         state the full url.
     file_name : str, optional
-        The base file name. Use this argument along with pb_dir if you
+        The base file name. Use this argument along with pn_dir if you
         want the full url to be constructed.
-    pb_dir : str, optional
+    pn_dir : str, optional
         The base file name. Use this argument along with file_name if
         you want the full url to be constructed.
-
     Returns
     -------
     remote_file_size : int
         Size of the file in bytes
-
     """
 
     # Option to construct the url
-    if file_name and pb_dir:
-        url = posixpath.join(config.db_index_url, pb_dir, file_name)
+    if file_name and pn_dir:
+        url = posixpath.join(config.db_index_url, pn_dir, file_name)
 
     response = requests.head(url, headers={'Accept-Encoding': 'identity'})
     # Raise HTTPError if invalid url
@@ -68,22 +68,19 @@ def _remote_file_size(url=None, file_name=None, pb_dir=None):
 
     return remote_file_size
 
-def _stream_header(file_name, pb_dir):
+def _stream_header(file_name, pn_dir):
     """
     Stream the lines of a remote header file.
-
     Parameters
     ----------
     file_name : str
-
-    pb_dir : str
-        The Physiobank database directory from which to find the
+    pn_dir : str
+        The Physionet database directory from which to find the
         required header file. eg. For file '100.hea' in
-        'http://physionet.org/physiobank/database/mitdb', pb_dir='mitdb'.
-
+        'http://physionet.org/content/mitdb', pn_dir='mitdb'.
     """
     # Full url of header location
-    url = posixpath.join(config.db_index_url, pb_dir, file_name)
+    url = posixpath.join(config.db_index_url, pn_dir, file_name)
     response = requests.get(url)
 
     # Raise HTTPError if invalid url
@@ -115,37 +112,34 @@ def _stream_header(file_name, pb_dir):
     return (header_lines, comment_lines)
 
 
-def _stream_dat(file_name, pb_dir, byte_count, start_byte, dtype):
+def _stream_dat(file_name, pn_dir, byte_count, start_byte, dtype):
     """
     Stream data from a remote dat file, into a 1d numpy array.
-
     Parameters
     ----------
     file_name : str
         The name of the dat file to be read.
-    pb_dir : str
-        The physiobank directory where the dat file is located.
+    pn_dir : str
+        The Physionet directory where the dat file is located.
     byte_count : int
         The number of bytes to be read.
     start_byte : int
         The starting byte number to read from.
     dtype : str
         The numpy dtype to load the data into.
-
     Returns
     -------
     sig_data : numpy array
         The data read from the dat file.
-
     """
 
     # Full url of dat file
-    url = posixpath.join(config.db_index_url, pb_dir, file_name)
+    url = posixpath.join(config.db_index_url, pn_dir, file_name)
 
     # Specify the byte range
     end_byte = start_byte + byte_count - 1
     headers = {"Range":"bytes=%d-%d" % (start_byte, end_byte),
-               'Accept-Encoding': '*/*'}
+               'Accept-Encoding': '*'}
 
     # Get the content
     response = requests.get(url, headers=headers, stream=True)
@@ -154,25 +148,28 @@ def _stream_dat(file_name, pb_dir, byte_count, start_byte, dtype):
     response.raise_for_status()
 
     # Convert to numpy array
-    sig_data = np.fromstring(response.content, dtype=dtype)
+    if type(dtype) == str:
+        # Convert 24-bit to 16-bit then proceed
+        temp_data = np.frombuffer(response.content, 'b').reshape(-1,3)[:,1:].flatten().view('i2')
+        sig_data = np.fromstring(temp_data, dtype='i2')
+    else:
+        sig_data = np.fromstring(response.content, dtype=dtype)
 
     return sig_data
 
 
-def _stream_annotation(file_name, pb_dir):
+def _stream_annotation(file_name, pn_dir):
     """
-    Stream an entire remote annotation file from physiobank
-
+    Stream an entire remote annotation file from Physionet
     Parameters
     ----------
     file_name : str
         The name of the annotation file to be read.
-    pb_dir : str
-        The physiobank directory where the annotation file is located.
-
+    pn_dir : str
+        The Physionet directory where the annotation file is located.
     """
     # Full url of annotation file
-    url = posixpath.join(config.db_index_url, pb_dir, file_name)
+    url = posixpath.join(config.db_index_url, pn_dir, file_name)
 
     # Get the content
     response = requests.get(url)
@@ -188,13 +185,12 @@ def _stream_annotation(file_name, pb_dir):
 def get_dbs():
     """
     Get a list of all the Physiobank databases available.
-
+    * Will soon be replaced by equivalent link on Physionet
     Examples
     --------
     >>> dbs = get_dbs()
-
     """
-    url = posixpath.join(config.db_index_url, 'DBS')
+    url = posixpath.join('https://archive.physionet.org/content', 'DBS')
     response = requests.get(url)
 
     dbs = response.content.decode('ascii').splitlines()
@@ -203,12 +199,11 @@ def get_dbs():
     return dbs
 
 
-# ---- Helper functions for downloading physiobank files ------- #
+# ---- Helper functions for downloading Physionet files ------- #
 
 def get_record_list(db_dir, records='all'):
     """
     Get a list of records belonging to a database.
-
     Parameters
     ----------
     db_dir : str
@@ -217,14 +212,15 @@ def get_record_list(db_dir, records='all'):
     records : list, optional
         A Option used when this function acts as a helper function.
         Leave as default 'all' to get all records.
-
     Examples
     --------
     >>> wfdb.get_record_list('mitdb')
-
     """
-    # Full url physiobank database
-    db_url = posixpath.join(config.db_index_url, db_dir)
+    # Full url Physionet database
+    if os.sep not in db_dir:
+        db_url = posixpath.join(config.db_index_url, db_dir, record.get_version(db_dir))
+    else:
+        db_url = posixpath.join(config.db_index_url, db_dir)
 
     # Check for a RECORDS file
     if records == 'all':
@@ -243,7 +239,7 @@ def get_record_list(db_dir, records='all'):
 
 def get_annotators(db_dir, annotators):
 
-    # Full url physiobank database
+    # Full url Physionet database
     db_url = posixpath.join(config.db_index_url, db_dir)
 
     if annotators is not None:
@@ -284,7 +280,7 @@ def make_local_dirs(dl_dir, dl_inputs, keep_subdirs):
         os.makedirs(dl_dir)
         print('Created local base download directory: %s' % dl_dir)
     # Create all required local subdirectories
-    # This must be out of dl_pb_file to
+    # This must be out of dl_pn_file to
     # avoid clash in multiprocessing
     if keep_subdirs:
         dl_dirs = set([os.path.join(dl_dir, d[1]) for d in dl_inputs])
@@ -294,13 +290,11 @@ def make_local_dirs(dl_dir, dl_inputs, keep_subdirs):
     return
 
 
-def dl_pb_file(inputs):
+def dl_pn_file(inputs):
     """
-    Download a file from physiobank.
-
+    Download a file from Physionet.
     The input args are to be unpacked for the use of multiprocessing
     map, because python2 doesn't have starmap...
-
     """
 
     basefile, subdir, db, dl_dir, keep_subdirs, overwrite = inputs
@@ -330,7 +324,7 @@ def dl_pb_file(inputs):
             # Local file is smaller than it should be. Append it.
             if local_file_size < remote_file_size:
                 print('Detected partially downloaded file: %s Appending file...' % local_file)
-                headers = {"Range": "bytes="+str(local_file_size)+"-", 'Accept-Encoding': '*/*'}
+                headers = {"Range": "bytes="+str(local_file_size)+"-", 'Accept-Encoding': '*'}
                 r = requests.get(url, headers=headers, stream=True)
                 print('headers: ', headers)
                 print('r content length: ', len(r.content))
@@ -352,14 +346,12 @@ def dl_pb_file(inputs):
 def dl_full_file(url, save_file_name):
     """
     Download a file. No checks are performed.
-
     Parameters
     ----------
     url : str
         The url of the file to download
     save_file_name : str
         The name to save the file as
-
     """
     response = requests.get(url)
     with open(save_file_name, 'wb') as writefile:
@@ -370,13 +362,12 @@ def dl_full_file(url, save_file_name):
 
 def dl_files(db, dl_dir, files, keep_subdirs=True, overwrite=False):
     """
-    Download specified files from a Physiobank database.
-
+    Download specified files from a Physionet database.
     Parameters
     ----------
     db : str
-        The Physiobank database directory to download. eg. For database:
-        'http://physionet.org/physiobank/database/mitdb', db='mitdb'.
+        The Physionet database directory to download. eg. For database:
+        'http://physionet.org/content/mitdb', db='mitdb'.
     dl_dir : str
         The full local directory path in which to download the files.
     files : list
@@ -384,7 +375,7 @@ def dl_files(db, dl_dir, files, keep_subdirs=True, overwrite=False):
         database base directory.
     keep_subdirs : bool, optional
         Whether to keep the relative subdirectories of downloaded files as they
-        are organized in Physiobank (True), or to download all files into the
+        are organized in Physionet (True), or to download all files into the
         same base directory (False).
     overwrite : bool, optional
         If True, all files will be redownloaded regardless. If False, existing
@@ -394,23 +385,22 @@ def dl_files(db, dl_dir, files, keep_subdirs=True, overwrite=False):
         will be redownloaded. If the local file is smaller, the file will be
         assumed to be partially downloaded and the remaining bytes will be
         downloaded and appended.
-
     Examples
     --------
     >>> wfdb.dl_files('ahadb', os.getcwd(),
                       ['STAFF-Studies-bibliography-2016.pdf', 'data/001a.hea',
                       'data/001a.dat'])
-
     """
+    # Full url Physionet database
+    db_dir = posixpath.join(db, record.get_version(db))
+    db_url = posixpath.join(PN_CONTENT_URL, db_dir) + os.sep
 
-    # Full url physiobank database
-    db_url = posixpath.join(config.db_index_url, db)
     # Check if the database is valid
     response = requests.get(db_url)
     response.raise_for_status()
 
     # Construct the urls to download
-    dl_inputs = [(os.path.split(file)[1], os.path.split(file)[0], db, dl_dir, keep_subdirs, overwrite) for file in files]
+    dl_inputs = [(os.path.split(file)[1], os.path.split(file)[0], db_dir, dl_dir, keep_subdirs, overwrite) for file in files]
 
     # Make any required local directories
     make_local_dirs(dl_dir, dl_inputs, keep_subdirs)
@@ -419,7 +409,7 @@ def dl_files(db, dl_dir, files, keep_subdirs=True, overwrite=False):
     # Create multiple processes to download files.
     # Limit to 2 connections to avoid overloading the server
     pool = multiprocessing.Pool(processes=2)
-    pool.map(dl_pb_file, dl_inputs)
+    pool.map(dl_pn_file, dl_inputs)
     print('Finished downloading files')
 
     return

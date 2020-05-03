@@ -190,7 +190,6 @@ def get_dbs():
     --------
     >>> dbs = get_dbs()
     """
-    # url = posixpath.join('https://archive.physionet.org/content', 'DBS')
     url = posixpath.join(config.db_index_url, 'DBS')
     response = requests.get(url)
 

@@ -427,7 +427,7 @@ def benchmark_mitdb(detector, verbose=False, print_results=False):
     print('Benchmark complete')
 
     if print_results:
-        print('\nOverall MITDB Performance - Sensitivity: %.4f, Positive Predictivity: %.4f\n'
+        print('\nOverall MITDB1 Performance - Sensitivity: %.4f, Positive Predictivity: %.4f\n'
               % (sensitivity, positive_predictivity))
         for record_name in record_list:
             print('Record %s:' % record_name)

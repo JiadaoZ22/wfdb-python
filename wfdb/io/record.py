@@ -866,13 +866,15 @@ def get_version(pn_dir):
         'http://physionet.org/content/mitdb', pn_dir='mitdb'.
     """
     db_dir = pn_dir.split(os.sep)[0]
-    url = posixpath.join(download.PN_CONTENT_URL, db_dir)
+    url = posixpath.join(download.PN_INDEX_URL, db_dir)
+    # url = posixpath.join(download.PN_CONTENT_URL, db_dir)
     response = requests.get(url)
     contents = [line.decode('utf-8').strip() for line in response.content.splitlines()]
     version_number = [v for v in contents if 'Version:' in v]
     version_number = version_number[0].split(':')[-1].strip().split('<')[0]
 
-    return version_number
+    return ''
+    # return version_number
 
 def _check_item_type(item, field_name, allowed_types, expect_list=False,
                     required_channels='all'):

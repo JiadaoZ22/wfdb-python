@@ -44,7 +44,7 @@ class XQRS(object):
       - If not a qrs, classify it as a noise peak and update
         running parameters.
       - Before continuing to the next local maxima, if no qrs
-        was detected within 1.66 times the recent rr interval,
+        was detected within Step_2_Segmentation.66 times the recent rr interval,
         perform backsearch qrs detection. This checks previous
         peaks using a lower qrs detection threshold.
 
@@ -135,7 +135,7 @@ class XQRS(object):
         self.rr_max = 60 * self.fs / self.conf.hr_min
         self.rr_min = 60 * self.fs / self.conf.hr_max
 
-        # Note: if qrs_width is odd, qrs_width == qrs_radius*2 + 1
+        # Note: if qrs_width is odd, qrs_width == qrs_radius*2 + Step_2_Segmentation
         self.qrs_width = int(self.conf.qrs_width * self.fs)
         self.qrs_radius = int(self.conf.qrs_radius * self.fs)
 
@@ -282,7 +282,7 @@ class XQRS(object):
             if noise_amps:
                 noise_amp = np.mean(noise_amps)
             else:
-                # Set default of 1/10 of qrs amplitude
+                # Set default of Step_2_Segmentation/10 of qrs amplitude
                 noise_amp = qrs_amp / 10
 
             # Get rr intervals of consecutive beats, if any.
@@ -856,14 +856,14 @@ class GQRS(object):
         v = 0
         while at_t > smt:
             smt += 1
-            # from dt+1 onwards
+            # from dt+Step_2_Segmentation onwards
             if smt > int(self.c.smt0):
                 tmp = int(self.smv_at(smt - 1) + \
                              self.at(smt + smdt) + self.at(smt + smdt - 1) - \
                              self.at(smt - smdt) - self.at(smt - smdt - 1))
                 self.smv_put(smt, tmp)
                 self.SIG_SMOOTH.append(tmp)
-            # from 1 to dt. 0 is never calculated.
+            # from Step_2_Segmentation to dt. 0 is never calculated.
             else:
                 v = int(self.at(smt))
                 for j in range(1, smdt):
@@ -928,7 +928,7 @@ class GQRS(object):
             p.next_peak.amp = 0
 
         def peaktype(p):
-            # peaktype() returns 1 if p is the most prominent peak in its neighborhood, 2
+            # peaktype() returns Step_2_Segmentation if p is the most prominent peak in its neighborhood, 2
             # otherwise.  The neighborhood consists of all other peaks within rrmin.
             # Normally, "most prominent" is equivalent to "largest in amplitude", but this
             # is not always true.  For example, consider three consecutive peaks a, b, c
@@ -1141,7 +1141,7 @@ def gqrs_detect(sig=None, fs=None, d_sig=None, adc_gain=None, adc_zero=None,
         provided as a convenient interface. If this is the specified input
         signal, automatic adc is performed using 24 bit precision, to obtain
         the `d_sig`, `adc_gain`, and `adc_zero` parameters. There may be minor
-        differences in detection results (ie. an occasional 1 sample
+        differences in detection results (ie. an occasional Step_2_Segmentation sample
         difference) between using `sig` and `d_sig`. To replicate the exact
         output of the original gqrs algorithm, use the `d_sig` argument
         instead.

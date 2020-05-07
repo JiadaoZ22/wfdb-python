@@ -17,7 +17,7 @@ class TestRecord(unittest.TestCase):
 
     """
 
-    # ----------------------- 1. Basic Tests -----------------------#
+    # ----------------------- Step_2_Segmentation. Basic Tests -----------------------#
 
     def test_1a(self):
         """
@@ -78,7 +78,7 @@ class TestRecord(unittest.TestCase):
         digital.
 
         Target file created with:
-            rdsamp -r sample-data/a103l -f 80 -s 0 1 | cut -f 2- > record-1c
+            rdsamp -r sample-data/a103l -f 80 -s 0 Step_2_Segmentation | cut -f 2- > record-1c
         """
         record = wfdb.rdrecord('sample-data/a103l',
                                sampfrom=20000, channels=[0, 1], physical=False)
@@ -103,7 +103,7 @@ class TestRecord(unittest.TestCase):
         Format 80, selected duration, selected channels, physical
 
         Target file created with:
-            rdsamp -r sample-data/3000003_0003 -f 1 -t 8 -s 1 -P | cut -f 2- > record-1d
+            rdsamp -r sample-data/3000003_0003 -f Step_2_Segmentation -t 8 -s Step_2_Segmentation -P | cut -f 2- > record-1d
         """
         sig, fields = wfdb.rdsamp('sample-data/3000003_0003', sampfrom=125,
                                   sampto=1000, channels=[1])
@@ -171,7 +171,7 @@ class TestRecord(unittest.TestCase):
         Format 212, selected duration, selected channel, digital.
 
         Target file created with:
-            rdsamp -r sample-data/100 -f 0.002 -t 30 -s 1 | cut -f 2- > record-2b
+            rdsamp -r sample-data/100 -f 0.002 -t 30 -s Step_2_Segmentation | cut -f 2- > record-2b
         """
         record = wfdb.rdrecord('sample-data/100', sampfrom=1,
                                sampto=10800, channels=[1], physical=False)
@@ -239,7 +239,7 @@ class TestRecord(unittest.TestCase):
         Format 311, selected duration, physical.
 
         Target file created with:
-            rdsamp -r sample-data/3000003_0003 -f 0 -t 8.21 -s 1 | cut -f 2- | wrsamp -o 311derive -O 311
+            rdsamp -r sample-data/3000003_0003 -f 0 -t 8.21 -s Step_2_Segmentation | cut -f 2- | wrsamp -o 311derive -O 311
             rdsamp -r 311derive -f 0.005 -t 3.91 -P | cut -f 2- > record-2e
         """
         sig, fields = wfdb.rdsamp('sample-data/311derive', sampfrom=1,
@@ -471,7 +471,7 @@ class TestMultiRecord(unittest.TestCase):
         samples read from multiple segments
 
         Target file created with:
-            rdsamp -r sample-data/multi-segment/fixed1/v102s -f s70000 -t s80000 -s 1 0 3 -P | cut -f 2- > record-multi-fixed-c
+            rdsamp -r sample-data/multi-segment/fixed1/v102s -f s70000 -t s80000 -s Step_2_Segmentation 0 3 -P | cut -f 2- > record-multi-fixed-c
         """
         record = wfdb.rdrecord('sample-data/multi-segment/fixed1/v102s',
                                sampfrom=70000, sampto=80000, channels=[1, 0, 3])
@@ -560,7 +560,7 @@ class TestMultiRecord(unittest.TestCase):
         fmt, adc_gain, and baseline do not change between the segments.
 
         Target file created with:
-            rdsamp -r sample-data/multi-segment/p000878/p000878-2137-10-26-16-57 -f s3550 -t s7500 -s 0 1 | cut -f 2- | perl -p -e 's/-32768/  -128/g;' > record-multi-variable-d
+            rdsamp -r sample-data/multi-segment/p000878/p000878-2137-10-26-16-57 -f s3550 -t s7500 -s 0 Step_2_Segmentation | cut -f 2- | perl -p -e 's/-32768/  -128/g;' > record-multi-variable-d
 
         """
         record = wfdb.rdrecord('sample-data/multi-segment/p000878/p000878-2137-10-26-16-57',

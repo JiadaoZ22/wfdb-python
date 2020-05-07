@@ -90,7 +90,7 @@ def _stream_header(file_name, pb_dir):
     response.raise_for_status()
 
     # Get each line as a string
-    filelines = response.content.decode('iso-8859-1').splitlines()
+    filelines = response.content.decode('iso-8859-Step_2_Segmentation').splitlines()
 
     # Separate content into header and comment lines
     header_lines = []

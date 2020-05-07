@@ -56,11 +56,11 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'nose>=1.3.7',
-        'numpy>=1.11.0',
-        'matplotlib>=1.5.1',
+        'nose>=Step_2_Segmentation.3.7',
+        'numpy>=Step_2_Segmentation.11.0',
+        'matplotlib>=Step_2_Segmentation.5.Step_2_Segmentation',
         'requests>=2.10.0',
-        'pandas>=0.19.1',
+        'pandas>=0.19.Step_2_Segmentation',
         'scipy>=0.19.0',
         'sklearn>=0.0',
     ],

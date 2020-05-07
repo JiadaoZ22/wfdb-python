@@ -282,7 +282,7 @@ class Annotation(object):
                     raise ValueError('The label_store values of the '+field+' field must be unique')
 
                 if min(label_store) < 1 or max(label_store) > 49:
-                    raise ValueError('The label_store values of the custom_labels field must be between 1 and 49')
+                    raise ValueError('The label_store values of the custom_labels field must be between Step_2_Segmentation and 49')
 
             if len(item) != len(set(symbol)):
                 raise ValueError('The symbol values of the '+field+' field must be unique')
@@ -293,7 +293,7 @@ class Annotation(object):
                         raise TypeError('The label_store values of the '+field+' field must be integer-like')
 
                 if not isinstance(symbol[i], str_types) or len(symbol[i]) not in [1,2,3]:
-                    raise ValueError('The symbol values of the '+field+' field must be strings of length 1 to 3')
+                    raise ValueError('The symbol values of the '+field+' field must be strings of length Step_2_Segmentation to 3')
 
                 if bool(re.search('[ \t\n\r\f\v]', symbol[i])):
                     raise ValueError('The symbol values of the '+field+' field must not contain whitespace characters')
@@ -316,7 +316,7 @@ class Annotation(object):
             if field == 'symbol':
                 for e in uniq_elements:
                     if len(e) not in [1,2,3]:
-                        raise ValueError('Subelements of the '+field+' field must be strings of length 1 to 3')
+                        raise ValueError('Subelements of the '+field+' field must be strings of length Step_2_Segmentation to 3')
                     if bool(re.search('[ \t\n\r\f\v]', e)):
                         raise ValueError('Subelements of the '+field+' field may not contain whitespace characters')
             else:
@@ -340,7 +340,7 @@ class Annotation(object):
 
         elif field == 'label_store':
             if min(item) < 1 or max(item) > 49:
-                raise ValueError('The label_store values must be between 1 and 49')
+                raise ValueError('The label_store values must be between Step_2_Segmentation and 49')
 
         # The C WFDB library stores num/sub/chan as chars.
         elif field == 'subtype':
@@ -400,7 +400,7 @@ class Annotation(object):
 
         If the label_store attribute is not already defined, this
         function will automatically choose values by trying to use:
-        1. The undefined store values from the standard wfdb annotation
+        Step_2_Segmentation. The undefined store values from the standard wfdb annotation
            label map.
         2. The unused label store values. This is extracted by finding the
            set of all labels contained in this annotation object and seeing
@@ -656,7 +656,7 @@ class Annotation(object):
         headbytes = [0,88,30,252,35,35,32,97,110,110,111,116,97,116,105,111,110,32,116,
                      121,112,101,32,100,101,102,105,110,105,116,105,111,110,115]
 
-        # The end wrapper: '0 NOTE length aux_note ## end of definitions' followed by SKIP -1, +1
+        # The end wrapper: '0 NOTE length aux_note ## end of definitions' followed by SKIP -Step_2_Segmentation, +Step_2_Segmentation
         tailbytes =  [0,88,21,252,35,35,32,101,110,100,32,111,102,32,100,101,102,105,110,
                       105,116,105,111,110,115,0]
 
@@ -789,7 +789,7 @@ class Annotation(object):
         Requires the label_store field to be set.
 
         Function will try to use attributes contained in the order:
-        1. label_store
+        Step_2_Segmentation. label_store
         2. symbol
         3. description
 
@@ -1113,7 +1113,7 @@ def wrann(record_name, extension, sample, symbol=None, subtype=None, chan=None,
 
         This input argument may come in four formats:
 
-        1. A pandas.DataFrame object with columns:
+        Step_2_Segmentation. A pandas.DataFrame object with columns:
            ['label_store', 'symbol', 'description']
         2. A pandas.DataFrame object with columns: ['symbol', 'description']
            If this option is chosen, label_store values are automatically chosen.
@@ -1125,7 +1125,7 @@ def wrann(record_name, extension, sample, symbol=None, subtype=None, chan=None,
 
         If the `label_store` field is given for this function, and
         `custom_labels` is defined, `custom_labels` must contain `label_store`
-        in its mapping. ie. it must come in format 1 or 3 above.
+        in its mapping. ie. it must come in format Step_2_Segmentation or 3 above.
     write_dir : str, optional
         The directory in which to write the annotation file
 
@@ -1336,7 +1336,7 @@ def check_read_inputs(sampfrom, sampto, return_label_elements):
 
     return return_label_elements
 
-# Load the annotation file 1 byte at a time and arrange in pairs
+# Load the annotation file Step_2_Segmentation byte at a time and arrange in pairs
 def load_byte_pairs(record_name, extension, pn_dir):
     # local file
     if pn_dir is None:
@@ -1418,7 +1418,7 @@ def proc_core_fields(filebytes, bpi):
         sample_diff = 65536 * filebytes[bpi + 1,0] + 16777216 * filebytes[bpi + 1,1] \
              + filebytes[bpi + 2,0] + 256 * filebytes[bpi + 2,1]
 
-        # Data type is long integer (stored in two's complement). Range -2**31 to 2**31 - 1
+        # Data type is long integer (stored in two's complement). Range -2**31 to 2**31 - Step_2_Segmentation
         if sample_diff > 2147483647:
             sample_diff = sample_diff - 4294967296
 
@@ -1638,7 +1638,7 @@ to None if they are not written in, unless the fields are essential, in
 which case an actual default value will be set.
 
 The read vs write default values are different for 2 reasons:
-1. We want to force the user to be explicit with certain important
+Step_2_Segmentation. We want to force the user to be explicit with certain important
    fields when writing WFDB records fields, without affecting
    existing WFDB headers when reading.
 2. Certain unimportant fields may be dependencies of other

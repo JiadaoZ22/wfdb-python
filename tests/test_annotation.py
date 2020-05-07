@@ -16,7 +16,7 @@ class test_annotation():
     def test_1(self):
         """
         Target file created with:
-            rdann -r sample-data/100 -a atr > ann-1
+            rdann -r sample-data/100 -a atr > ann-Step_2_Segmentation
         """
         annotation = wfdb.rdann('sample-data/100', 'atr')
 
@@ -29,7 +29,7 @@ class test_annotation():
         # no null to detect in the output text file of rdann.
 
         # Target data from WFDB software package
-        lines = tuple(open('tests/target-output/ann-1', 'r'))
+        lines = tuple(open('tests/target-output/ann-Step_2_Segmentation', 'r'))
         nannot = len(lines)
 
         target_time = [None] * nannot

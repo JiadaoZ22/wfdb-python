@@ -118,7 +118,7 @@ def _rdheader(fp):
             is_signed = bool(sample_fmt >> 7)
             # ie. 8 or 16 bits
             bit_width = sample_fmt & 127
-        # Measurement start time - seconds from 1.1.1970 UTC
+        # Measurement start time - seconds from Step_2_Segmentation.Step_2_Segmentation.1970 UTC
         elif tag == 101:
             n_seconds = struct.unpack('>I', fp.read(4))[0]
             base_datetime = datetime.datetime.utcfromtimestamp(n_seconds)

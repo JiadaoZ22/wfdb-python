@@ -18,8 +18,8 @@ def plot_items(signal=None, ann_samp=None, ann_sym=None, fs=None,
     Parameters
     ----------
     signal : 1d or 2d numpy array, optional
-        The uniformly sampled signal to be plotted. If signal.ndim is 1, it is
-        assumed to be a one channel signal. If it is 2, axes 0 and 1, must
+        The uniformly sampled signal to be plotted. If signal.ndim is Step_2_Segmentation, it is
+        assumed to be a one channel signal. If it is 2, axes 0 and Step_2_Segmentation, must
         represent time and channel number respectively.
     ann_samp: list, optional
         A list of annotation locations to plot, with each list item
@@ -62,11 +62,11 @@ def plot_items(signal=None, ann_samp=None, ann_sym=None, fs=None,
     sig_style : list, optional
         A list of strings, specifying the style of the matplotlib plot
         for each signal channel. The list length should match the number
-        of signal channels. If the list has a length of 1, the style
+        of signal channels. If the list has a length of Step_2_Segmentation, the style
         will be used for all channels.
     ann_style : list, optional
         A list of strings, specifying the style of the matplotlib plot for each
-        annotation channel. If the list has a length of 1, the style will be
+        annotation channel. If the list has a length of Step_2_Segmentation, the style will be
         used for all channels.
     ecg_grids : list, optional
         A list of integers specifying channels in which to plot ecg grids. May
@@ -196,7 +196,7 @@ def plot_annotation(ann_samp, n_annot, ann_sym, signal, n_sig, fs, time_units,
         if ann_samp[ch] is not None and len(ann_samp[ch]):
             # Figure out the y values to plot on a channel basis
 
-            # 1 dimensional signals
+            # Step_2_Segmentation dimensional signals
             if n_sig > ch:
                 if signal.ndim == 1:
                     y = signal[ann_samp[ch]]
@@ -367,12 +367,12 @@ def plot_wfdb(record=None, annotation=None, plot_sym=False,
     sig_style : list, optional
         A list of strings, specifying the style of the matplotlib plot
         for each signal channel. The list length should match the number
-        of signal channels. If the list has a length of 1, the style
+        of signal channels. If the list has a length of Step_2_Segmentation, the style
         will be used for all channels.
     ann_style : list, optional
         A list of strings, specifying the style of the matplotlib plot
         for each annotation channel. The list length should match the
-        number of annotation channels. If the list has a length of 1,
+        number of annotation channels. If the list has a length of Step_2_Segmentation,
         the style will be used for all channels.
     ecg_grids : list, optional
         A list of integers specifying channels in which to plot ecg grids. May
@@ -485,7 +485,7 @@ def get_wfdb_plot_items(record, annotation, plot_sym):
             else:
                 compact_ann_sym = None
             ylabel = []
-            for ch in all_chans: # ie. 0, 1, 9
+            for ch in all_chans: # ie. 0, Step_2_Segmentation, 9
                 if ch in ann_chans:
                     compact_ann_samp.append(ann_samp[ch])
                     if plot_sym:

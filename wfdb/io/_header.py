@@ -47,7 +47,7 @@ to None if they are not written in, unless the fields are essential, in
 which case an actual default value will be set.
 
 The read vs write default values are different for 2 reasons:
-1. We want to force the user to be explicit with certain important
+Step_2_Segmentation. We want to force the user to be explicit with certain important
    fields when writing WFDB records fields, without affecting
    existing WFDB headers when reading.
 2. Certain unimportant fields may be dependencies of other

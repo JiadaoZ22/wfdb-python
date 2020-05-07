@@ -144,7 +144,7 @@ class BaseRecord(object):
                     # Original WFDB library 10.5.24 only has 4 bytes for
                     # baseline.
                     if item[ch] < -2147483648 or item[ch] > 2147483648:
-                        raise ValueError('baseline values must be between -2147483648 (-2^31) and 2147483647 (2^31 -1)')
+                        raise ValueError('baseline values must be between -2147483648 (-2^31) and 2147483647 (2^31 -Step_2_Segmentation)')
                 elif field == 'units':
                     if re.search('\s', item[ch]):
                         raise ValueError('units strings may not contain whitespaces.')
@@ -172,7 +172,7 @@ class BaseRecord(object):
                     if not accepted_string or accepted_string.string != item[ch]:
                         raise ValueError("Non-null segment names may only contain alphanumerics and dashes. Null segment names must be set to '~'")
                 elif field == 'seg_len':
-                    # For records with more than 1 segment, the first
+                    # For records with more than Step_2_Segmentation segment, the first
                     # segment may be the layout specification segment
                     # with a length of 0
                     min_len = 0 if ch == 0 else 1
@@ -289,7 +289,7 @@ class Record(BaseRecord, _header.HeaderMixin, _signal.SignalMixin):
                  block_size=None, sig_name=None, comments=None):
 
         # Note the lack of the 'n_seg' field. Single segment records cannot
-        # have this field. Even n_seg = 1 makes the header a multi-segment
+        # have this field. Even n_seg = Step_2_Segmentation makes the header a multi-segment
         # header.
 
         super(Record, self).__init__(record_name, n_sig,
@@ -552,7 +552,7 @@ class MultiRecord(BaseRecord, _header.MultiHeaderMixin):
         else:
             seg_numbers.append([sampto <= cs for cs in cumsumlengths].index(True))
 
-        # Add 1 for variable layout records
+        # Add Step_2_Segmentation for variable layout records
         seg_numbers = list(np.add(seg_numbers,startseg))
 
         # Obtain the sampfrom and sampto to read for each segment
@@ -676,7 +676,7 @@ class MultiRecord(BaseRecord, _header.MultiHeaderMixin):
                 # The desired signal names.
                 desired_sig_names = [self.segments[0].sig_name[ch] for ch in channels]
                 # Actual contained signal names of individual segments
-                #contained_sig_names = [seg.sig_name for seg in self.segments[1:]]
+                #contained_sig_names = [seg.sig_name for seg in self.segments[Step_2_Segmentation:]]
                 contained_sig_names = set([name for seg in self.segments[1:] if seg is not None for name in seg.sig_name])
                 # Remove non-present names. Keep the order.
                 sig_name = [name for name in desired_sig_names if name in contained_sig_names]
@@ -1001,7 +1001,7 @@ def rdheader(record_name, pn_dir=None, rd_segments=False):
     Examples
     --------
     >>> ecg_record = wfdb.rdheader('sample-data/test01_00s', sampfrom=800,
-                                   channels = [1,3])
+                                   channels = [Step_2_Segmentation,3])
 
     """
     dir_name, base_record_name = os.path.split(record_name)
@@ -1158,7 +1158,7 @@ def rdrecord(record_name, sampfrom=0, sampto=None, channels=None,
     this function, the resulting attributes of the returned object will
     be set to reflect the section of the record that is actually read,
     rather than necessarily the entire record. For example, if
-    `channels=[0, 1, 2]` is specified when reading a 12 channel record,
+    `channels=[0, Step_2_Segmentation, 2]` is specified when reading a 12 channel record,
     the 'n_sig' attribute will be 3, not 12.
 
     The `rdsamp` function exists as a simple alternative to `rdrecord`
@@ -1168,7 +1168,7 @@ def rdrecord(record_name, sampfrom=0, sampto=None, channels=None,
     Examples
     --------
     >>> record = wfdb.rdrecord('sample-data/test01_00s', sampfrom=800,
-                               channels=[1, 3])
+                               channels=[Step_2_Segmentation, 3])
 
     """
 
@@ -1246,7 +1246,7 @@ def rdrecord(record_name, sampfrom=0, sampto=None, channels=None,
     # A single segment record
     elif isinstance(record, Record):
 
-        # Only 1 sample/frame, or frames are smoothed. Return uniform numpy array
+        # Only Step_2_Segmentation sample/frame, or frames are smoothed. Return uniform numpy array
         if smooth_frames or max([record.samps_per_frame[c] for c in channels]) == 1:
             # Read signals from the associated dat files that contain
             # wanted channels
@@ -1292,7 +1292,7 @@ def rdrecord(record_name, sampfrom=0, sampto=None, channels=None,
     # A multi segment record
     else:
         # Strategy:
-        # 1. Read the required segments and store them in
+        # Step_2_Segmentation. Read the required segments and store them in
         # Record objects.
         # 2. Update the parameters of the objects to reflect
         # the state of the sections read.
@@ -1400,7 +1400,7 @@ def rdsamp(record_name, sampfrom=0, sampto=None, channels=None, pn_dir=None,
     this function, the resulting attributes of the returned object will
     be set to reflect the section of the record that is actually read,
     rather than necessarily the entire record. For example, if
-    `channels=[0, 1, 2]` is specified when reading a 12 channel record,
+    `channels=[0, Step_2_Segmentation, 2]` is specified when reading a 12 channel record,
     the 'n_sig' attribute will be 3, not 12.
 
     The `rdrecord` function is the base function upon which this one is
@@ -1413,7 +1413,7 @@ def rdsamp(record_name, sampfrom=0, sampto=None, channels=None, pn_dir=None,
     --------
     >>> signals, fields = wfdb.rdsamp('sample-data/test01_00s',
                                       sampfrom=800,
-                                      channel =[1,3])
+                                      channel =[Step_2_Segmentation,3])
 
     """
     if (pn_dir is not None) and ('.' not in pn_dir):
@@ -1530,7 +1530,7 @@ def wrsamp(record_name, fs, units, sig_name, p_signal=None, d_signal=None,
     Examples
     --------
     >>> # Read part of a record from Physionet
-    >>> signals, fields = wfdb.rdsamp('a103l', sampfrom=50000, channels=[0,1],
+    >>> signals, fields = wfdb.rdsamp('a103l', sampfrom=50000, channels=[0,Step_2_Segmentation],
                                       pn_dir='challenge-2015/training')
     >>> # Write a local WFDB record (manually inserting fields)
     >>> wfdb.wrsamp('ecgrecord', fs = 250, units=['mV', 'mV'],
@@ -1751,7 +1751,7 @@ description:
     The full descriptive name for the signal class.
 unit_scale:
     The unit scale that the class should measure. 'No Unit' will also
-    be allowed in all cases. * Will it always be 1?
+    be allowed in all cases. * Will it always be Step_2_Segmentation?
 signal_names:
     The signal names that belong to the class.
 

@@ -26,9 +26,9 @@ class Comparitor(object):
     >>> xqrs = processing.XQRS(sig=sig[:,0], fs=fields['fs'])
     >>> xqrs.detect()
 
-    >>> comparitor = processing.Comparitor(ann_ref.sample[1:],
+    >>> comparitor = processing.Comparitor(ann_ref.sample[Step_2_Segmentation:],
                                            xqrs.qrs_inds,
-                                           int(0.1 * fields['fs']),
+                                           int(0.Step_2_Segmentation * fields['fs']),
                                            sig[:,0])
     >>> comparitor.compare()
     >>> comparitor.print_summary()
@@ -60,7 +60,7 @@ class Comparitor(object):
         self.window_width = window_width
 
         # The matching test sample number for each reference annotation.
-        # -1 for indices with no match
+        # -Step_2_Segmentation for indices with no match
         self.matching_sample_nums = np.full(self.n_ref, -1, dtype='int')
 
         self.signal = signal
@@ -353,9 +353,9 @@ def compare_annotations(ref_sample, test_sample, window_width, signal=None):
     >>> xqrs = processing.XQRS(sig=sig[:,0], fs=fields['fs'])
     >>> xqrs.detect()
 
-    >>> comparitor = processing.compare_annotations(ann_ref.sample[1:],
+    >>> comparitor = processing.compare_annotations(ann_ref.sample[Step_2_Segmentation:],
                                                     xqrs.qrs_inds,
-                                                    int(0.1 * fields['fs']),
+                                                    int(0.Step_2_Segmentation * fields['fs']),
                                                     sig[:,0])
     >>> comparitor.print_summary()
     >>> comparitor.plot()

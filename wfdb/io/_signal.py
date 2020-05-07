@@ -555,7 +555,7 @@ class SignalMixin(object):
         for ch in range(np.shape(self.p_signal)[1]):
             # Get the minimum and maximum (valid) storage values
             dmin, dmax = _digi_bounds(self.fmt[ch])
-            # add 1 because the lowest value is used to store nans
+            # add Step_2_Segmentation because the lowest value is used to store nans
             dmin = dmin + 1
 
             pmin = minvals[ch]
@@ -573,7 +573,7 @@ class SignalMixin(object):
                     adc_gain = 1
                     baseline = 1
                 else:
-                    # All digital values are +1 or -1. Keep adc_gain > 0
+                    # All digital values are +Step_2_Segmentation or -Step_2_Segmentation. Keep adc_gain > 0
                     adc_gain = abs(1 / pmin)
                     baseline = 0
             # Regular varied signal case.
@@ -592,7 +592,7 @@ class SignalMixin(object):
                 # Make adjustments for baseline to be an integer
                 # This up/down round logic of baseline is to ensure
                 # there is no overshoot of dmax. Now pmax will map
-                # to dmax or dmax-1 which is also fine.
+                # to dmax or dmax-Step_2_Segmentation which is also fine.
                 if pmin > 0:
                     baseline = int(np.ceil(baseline))
                 else:
@@ -608,13 +608,13 @@ class SignalMixin(object):
             # Remap signal if baseline exceeds boundaries.
             # This may happen if pmax < 0
             if baseline > MAX_I32:
-                # pmin maps to dmin, baseline maps to 2**31 - 1
+                # pmin maps to dmin, baseline maps to 2**31 - Step_2_Segmentation
                 # pmax will map to a lower value than before
                 adc_gain = (MAX_I32) - dmin / abs(pmin)
                 baseline = MAX_I32
             # This may happen if pmin > 0
             elif baseline < MIN_I32:
-                # pmax maps to dmax, baseline maps to -2**31 + 1
+                # pmax maps to dmax, baseline maps to -2**31 + Step_2_Segmentation
                 adc_gain = (dmax - MIN_I32) / pmax
                 baseline = MIN_I32
 
@@ -865,7 +865,7 @@ def _rd_segment(file_name, dir_name, pn_dir, fmt, n_sig, sig_len, byte_offset,
         r_w_channel[fn] = [c - min(datchannel[fn]) for c in w_channel[fn]]
         out_dat_channel[fn] = [channels.index(c) for c in w_channel[fn]]
 
-    # Signals with multiple samples/frame are smoothed, or all signals have 1 sample/frame.
+    # Signals with multiple samples/frame are smoothed, or all signals have Step_2_Segmentation sample/frame.
     # Return uniform numpy array
     if smooth_frames or sum(samps_per_frame) == n_sig:
         # Figure out the largest required dtype for the segment to minimize memory usage
@@ -1082,7 +1082,7 @@ def _dat_read_params(fmt, sig_len, byte_offset, skew, tsamps_per_frame,
     sampfrom=0, sampto=100 --> read_len = 100, n_sampread = 100*t, extralen = 5, nan_replace = [0, 2, 4, 5]
     sampfrom=50, sampto=100 --> read_len = 50, n_sampread = 50*t, extralen = 5, nan_replace = [0, 2, 4, 5]
     sampfrom=0, sampto=50 --> read_len = 50, n_sampread = 55*t, extralen = 0, nan_replace = [0, 0, 0, 0]
-    sampfrom=95, sampto=99 --> read_len = 4, n_sampread = 5*t, extralen = 4, nan_replace = [0, 1, 3, 4]
+    sampfrom=95, sampto=99 --> read_len = 4, n_sampread = 5*t, extralen = 4, nan_replace = [0, Step_2_Segmentation, 3, 4]
 
     """
 
@@ -1169,7 +1169,7 @@ def _required_byte_num(mode, fmt, n_samp):
                 # Have to write more bytes for wfdb c to work
                 else:
                     n_bytes = upround(n_samp * 4/3, 4)
-        # 0 or 1
+        # 0 or Step_2_Segmentation
         else:
             n_bytes = math.ceil(n_samp * 4/3 )
     else:
@@ -1285,7 +1285,7 @@ def _blocks_to_samples(sig_data, n_samp, fmt):
 
         # Even numbered samples
         sig[0::2] = sig_data[0::3] + 256 * np.bitwise_and(sig_data[1::3], 0x0f)
-        # Odd numbered samples (len(sig) always > 1 due to processing of
+        # Odd numbered samples (len(sig) always > Step_2_Segmentation due to processing of
         # whole blocks)
         sig[1::2] = sig_data[2::3] + 256*np.bitwise_and(sig_data[1::3] >> 4, 0x0f)
 
@@ -1295,7 +1295,7 @@ def _blocks_to_samples(sig_data, n_samp, fmt):
             sig = sig[:-added_samps]
 
         # Loaded values as un_signed. Convert to 2's complement form:
-        # values > 2^11-1 are negative.
+        # values > 2^11-Step_2_Segmentation are negative.
         sig[sig > 2047] -= 4096
 
     elif fmt == '310':
@@ -1324,7 +1324,7 @@ def _blocks_to_samples(sig_data, n_samp, fmt):
             sig = sig[:-added_samps]
 
         # Loaded values as un_signed. Convert to 2's complement form:
-        # values > 2^9-1 are negative.
+        # values > 2^9-Step_2_Segmentation are negative.
         sig[sig > 511] -= 1024
 
     elif fmt == '311':
@@ -1353,7 +1353,7 @@ def _blocks_to_samples(sig_data, n_samp, fmt):
             sig = sig[:-added_samps]
 
         # Loaded values as un_signed. Convert to 2's complement form.
-        # Values > 2^9-1 are negative.
+        # Values > 2^9-Step_2_Segmentation are negative.
         sig[sig > 511] -= 1024
     return sig
 
@@ -1710,9 +1710,9 @@ def wr_dat_file(file_name, fmt, d_signal, byte_offset, expanded=False,
 
         # Fill in the byte triplets
 
-        # Triplet 1 from lowest 8 bits of sample 1
+        # Triplet Step_2_Segmentation from lowest 8 bits of sample Step_2_Segmentation
         b_write[0::3] = d_signal[0::2] & 255
-        # Triplet 2 from highest 4 bits of samples 1 (lower) and 2 (upper)
+        # Triplet 2 from highest 4 bits of samples Step_2_Segmentation (lower) and 2 (upper)
         b_write[1::3] = ((d_signal[0::2] & 3840) >> 8) + ((d_signal[1::2] & 3840) >> 4)
         # Triplet 3 from lowest 8 bits of sample 2
         b_write[2::3] = d_signal[1::2] & 255
